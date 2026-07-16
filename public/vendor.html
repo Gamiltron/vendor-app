@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f1117;
+      color: #e4e6eb;
+      min-height: 100vh;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #1a1d27;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #f5a623;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f5a623;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #8b8f9a;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #2ecc71;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #8b8f9a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+    }
+
+    #orders-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .order-card {
+      background-color: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .order-card:hover {
+      transform: translateY(-2px);
+      border-color: #f5a623;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .order-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .customer-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .order-id {
+      font-size: 0.75rem;
+      color: #6c6f7a;
+      background-color: #252833;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    .item-list {
+      list-style: none;
+      margin-bottom: 1.25rem;
+    }
+
+    .item-list li {
+      padding: 0.4rem 0;
+      font-size: 0.95rem;
+      color: #c4c7d0;
+      border-bottom: 1px solid #252833;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .item-list li:last-child {
+      border-bottom: none;
+    }
+
+    .item-list li::before {
+      content: '•';
+      color: #f5a623;
+      font-weight: bold;
+    }
+
+    .accept-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #f5a623;
+      color: #0f1117;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .accept-btn:hover {
+      background-color: #e6951a;
+    }
+
+    .accept-btn:active {
+      transform: scale(0.98);
+    }
+
+    .accept-btn.complete {
+      background-color: #2ecc71;
+    }
+
+    .accept-btn.complete:hover {
+      background-color: #27ae60;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .card-actions .accept-btn,
+    .card-actions .delete-btn {
+      flex: 1;
+    }
+
+    .delete-btn {
+      padding: 0.75rem;
+      background-color: #e63946;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .delete-btn:hover {
+      background-color: #c1121f;
+    }
+
+    .delete-btn:active {
+      transform: scale(0.98);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #4a4d5a;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+    }
+
+    .stock-toggle {
+      background-color: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .stock-toggle-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .stock-toggle-header:hover {
+      background-color: #22253a;
+    }
+
+    .stock-toggle-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e4e6eb;
+    }
+
+    .stock-toggle-header .chevron {
+      font-size: 0.8rem;
+      color: #6c6f7a;
+      transition: transform 0.3s ease;
+    }
+
+    .stock-toggle-header.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .stock-toggle-body {
+      display: none;
+      padding: 0 1.25rem 1rem;
+    }
+
+    .stock-toggle-body.open {
+      display: block;
+    }
+
+    .stock-category-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #f5a623;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.75rem;
+      margin-bottom: 0.4rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid #252833;
+    }
+
+    .stock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #1e2030;
+    }
+
+    .stock-row:last-child {
+      border-bottom: none;
+    }
+
+    .stock-item-name {
+      font-size: 0.82rem;
+      color: #c4c7d0;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background-color: #e63946;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: transform 0.25s ease;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #2ecc71;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header>
+      <h1>Vendor Dashboard</h1>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span id="connection-status">Connecting...</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Admin Panel Toggle Button -->
+      <div style="padding: 15px; background: #f8f9fa; border-bottom: 2px solid #dee2e6; margin-bottom: 20px;">
+          <button id="toggle-admin-btn" style="background: #212529; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+              ⚙️ Manage Menu & Prices
+          </button>
+      </div>
+
+      <!-- Password Protection Modal / Prompt Panel -->
+      <div id="admin-auth-panel" style="display: none; padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; margin: 0 15px 20px 15px;">
+          <label style="font-weight: bold; display: block; margin-bottom: 8px;">Enter Admin PIN:</label>
+          <input type="password" id="admin-pin-input" placeholder="Enter PIN" style="padding: 8px; border: 1px solid #ced4da; border-radius: 4px; margin-right: 10px;">
+          <button id="submit-pin-btn" style="background: #ffc107; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Unlock</button>
+      </div>
+
+      <!-- Core Admin Panel Content (Hidden by default) -->
+      <div id="admin-main-panel" style="display: none; padding: 20px; background: white; border: 1px solid #dee2e6; border-radius: 5px; margin: 0 15px 20px 15px;">
+          <h3 style="margin-top: 0;">➕ Add New Menu Item</h3>
+          <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+              <input type="text" id="new-item-name" placeholder="Item Name (e.g., Tandoori Momo)" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;">
+              <select id="new-item-category" style="padding: 8px; border: 1px solid #ced4da; border-radius: 4px;">
+                  <option value="Veg">Veg🟢</option>
+                  <option value="Paneer">Paneer🟡</option>
+                  <option value="Chicken">Chicken🔴</option>
+              </select>
+              <input type="number" id="new-item-price" placeholder="Price (₹)" style="width: 100px; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;">
+              <button id="add-item-btn" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Add Item</button>
+          </div>
+
+          <h3>📝 Edit Existing Prices</h3>
+          <div id="admin-menu-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px;">
+              <!-- Dynamic menu list entries with price modification inputs will be injected here by JS -->
+          </div>
+      </div>
+
+      <div class="stock-toggle">
+        <div class="stock-toggle-header" id="stock-toggle-header">
+          <h2>Menu Stock Control</h2>
+          <span class="chevron">&#9660;</span>
+        </div>
+        <div class="stock-toggle-body" id="stock-toggle-body"></div>
+      </div>
+
+      <p class="section-title">Incoming Orders</p>
+      <div id="orders-container">
+        <div class="empty-state">
+          <p>No orders yet. Waiting for customers...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const ordersContainer = document.getElementById('orders-container');
+    const connectionStatus = document.getElementById('connection-status');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    let menuItems = [];
+    const ADMIN_PIN = '1234';
+    let adminUnlocked = false;
+
+    async function loadMenu() {
+      try {
+        const res = await fetch('/api/menu');
+        menuItems = await res.json();
+        renderStockPanel();
+        renderAdminMenuList();
+      } catch {
+        console.error('Failed to load menu');
+      }
+    }
+
+    function renderStockPanel() {
+      const body = document.getElementById('stock-toggle-body');
+      body.innerHTML = menuItems.map(item => `
+        <div class="stock-row">
+          <span class="stock-item-name">${item.name} (${item.category}) — ₹${item.price}</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item.id}">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      `).join('');
+
+      body.querySelectorAll('input[type="checkbox"]').forEach(toggle => {
+        toggle.addEventListener('change', () => {
+          socket.emit('update-stock', { id: Number(toggle.dataset.id), available: toggle.checked });
+        });
+      });
+    }
+
+    function renderAdminMenuList() {
+      const list = document.getElementById('admin-menu-list');
+      list.innerHTML = menuItems.map(item => `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee;">
+          <span style="flex: 1; font-size: 0.9rem;">${item.name} (${item.category})</span>
+          <input type="number" value="${item.price}" data-id="${item.id}" class="admin-price-input"
+            style="width: 80px; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.85rem;">
+          <button class="save-price-btn" data-id="${item.id}"
+            style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Save</button>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('.save-price-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          const input = list.querySelector(`.admin-price-input[data-id="${id}"]`);
+          const newPrice = Number(input.value);
+          if (newPrice > 0) {
+            socket.emit('update-menu-item', { id, price: newPrice });
+          }
+        });
+      });
+    }
+
+    const stockToggleHeader = document.getElementById('stock-toggle-header');
+    const stockToggleBody = document.getElementById('stock-toggle-body');
+    stockToggleHeader.addEventListener('click', () => {
+      stockToggleHeader.classList.toggle('open');
+      stockToggleBody.classList.toggle('open');
+    });
+
+    document.getElementById('toggle-admin-btn').addEventListener('click', () => {
+      if (adminUnlocked) {
+        const panel = document.getElementById('admin-main-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        return;
+      }
+      document.getElementById('admin-auth-panel').style.display = 'block';
+      document.getElementById('admin-pin-input').focus();
+    });
+
+    document.getElementById('submit-pin-btn').addEventListener('click', () => {
+      const pin = document.getElementById('admin-pin-input').value;
+      if (pin === ADMIN_PIN) {
+        adminUnlocked = true;
+        document.getElementById('admin-auth-panel').style.display = 'none';
+        document.getElementById('admin-main-panel').style.display = 'block';
+        document.getElementById('admin-pin-input').value = '';
+      } else {
+        alert('Incorrect PIN');
+      }
+    });
+
+    document.getElementById('admin-pin-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('submit-pin-btn').click();
+    });
+
+    document.getElementById('add-item-btn').addEventListener('click', () => {
+      const name = document.getElementById('new-item-name').value.trim();
+      const category = document.getElementById('new-item-category').value;
+      const price = Number(document.getElementById('new-item-price').value);
+      if (!name || price <= 0) {
+        alert('Please enter a valid item name and price');
+        return;
+      }
+      socket.emit('update-menu-item', { name, category, price });
+      document.getElementById('new-item-name').value = '';
+      document.getElementById('new-item-price').value = '';
+    });
+
+    socket.on('menu-updated', (items) => {
+      menuItems = items;
+      renderStockPanel();
+      renderAdminMenuList();
+    });
+
+    loadMenu();
+
+    function playDing() {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      oscillator.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.08);
+
+      gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    }
+
+    socket.on('connect', () => {
+      connectionStatus.textContent = 'Online';
+      socket.emit('join-vendor');
+    });
+
+    socket.on('disconnect', () => {
+      connectionStatus.textContent = 'Offline';
+    });
+
+    socket.on('new-order', (order) => {
+      playDing();
+
+      const emptyState = ordersContainer.querySelector('.empty-state');
+      if (emptyState) emptyState.remove();
+
+      const card = document.createElement('div');
+      card.className = 'order-card';
+      card.dataset.orderId = order.id;
+      card.innerHTML = `
+        <div class="order-header">
+          <span class="customer-name">${order.customerName}</span>
+          <span class="order-id">#${order.id}</span>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; ${order.paymentStatus === 'Paid via UPI' ? 'background: #d4edda; color: #155724;' : 'background: #e2e3e5; color: #383d41;'}">${order.paymentStatus === 'Paid via UPI' ? 'Paid via UPI 🟢' : 'Pay at Counter 💰'}</span>
+        </div>
+        <ul class="item-list">
+          ${order.items.map(item => `<li>${item}</li>`).join('')}
+        </ul>
+        <div class="card-actions">
+          <button class="accept-btn">Accept Order</button>
+          <button class="delete-btn">Delete</button>
+        </div>
+      `;
+
+      const acceptBtn = card.querySelector('.accept-btn');
+      const deleteBtn = card.querySelector('.delete-btn');
+
+      deleteBtn.addEventListener('click', () => {
+        socket.emit('delete-order', { orderId: order.id });
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-10px)';
+        setTimeout(() => card.remove(), 300);
+
+        if (!ordersContainer.querySelector('.order-card')) {
+          ordersContainer.innerHTML = '<div class="empty-state"><p>No orders yet. Waiting for customers...</p></div>';
+        }
+      });
+
+      acceptBtn.addEventListener('click', () => {
+        if (acceptBtn.classList.contains('complete')) {
+          socket.emit('complete-order', { orderId: order.id });
+          card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(-10px)';
+          setTimeout(() => card.remove(), 300);
+
+          if (!ordersContainer.querySelector('.order-card')) {
+            ordersContainer.innerHTML = '<div class="empty-state"><p>No orders yet. Waiting for customers...</p></div>';
+          }
+          return;
+        }
+
+        socket.emit('accept-order', { orderId: order.id });
+        acceptBtn.textContent = 'Complete Order';
+        acceptBtn.classList.add('complete');
+      });
+
+      ordersContainer.prepend(card);
+    });
+  </script>
+</body>
+</html>
